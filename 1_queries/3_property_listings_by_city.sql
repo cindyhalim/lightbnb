@@ -1,4 +1,4 @@
-SELECT properties.*, AVG(property_reviews.rating) as average_rating
+SELECT properties.id, properties.title , AVG(property_reviews.rating) as average_rating
 FROM properties
 JOIN property_reviews ON property_id = properties.id
 WHERE properties.city LIKE '%Vancouver%'
