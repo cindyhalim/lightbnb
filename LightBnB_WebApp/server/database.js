@@ -18,12 +18,12 @@ const pool = new Pool({
  * @param {String} email The email of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithEmail = function(email) {
+const getUserWithEmail = function (email) {
   const queryString = `SELECT * FROM users WHERE email = $1;`
   const values = [email];
   return pool.query(queryString, values)
-  .then(res => res.rows[0])
-  .catch(err => console.log('query error', err.stack))
+    .then(res => res.rows[0])
+    .catch(err => console.log('query error', err.stack))
 
   // let user;
   // for (const userId in users) {
@@ -43,12 +43,12 @@ exports.getUserWithEmail = getUserWithEmail;
  * @param {string} id The id of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithId = function(id) {
+const getUserWithId = function (id) {
   const queryString = `SELECT * FROM users WHERE id = $1`
   const values = [id]
   return pool.query(queryString, values)
-  .then(res => res.rows[0])
-  .catch(err => console.log('query error', err.stack))
+    .then(res => res.rows[0])
+    .catch(err => console.log('query error', err.stack))
 }
 exports.getUserWithId = getUserWithId;
 
@@ -58,15 +58,15 @@ exports.getUserWithId = getUserWithId;
  * @param {{name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
  */
-const addUser =  function(user) {
+const addUser = function (user) {
   // const userId = Object.keys(users).length + 1;
   // user.id = userId;
   // users[userId] = user;
   const values = [user.name, user.email, user.password]
   const queryString = `INSERT INTO users(name, email, password) VALUES ($1, $2, $3) RETURNING *`
   return pool.query(queryString, values)
-  .then(res => res.rows[0])
-  .catch(err => console.log('query error', err.stack))
+    .then(res => res.rows[0])
+    .catch(err => console.log('query error', err.stack))
 }
 exports.addUser = addUser;
 
@@ -77,8 +77,20 @@ exports.addUser = addUser;
  * @param {string} guest_id The id of the user.
  * @return {Promise<[{}]>} A promise to the reservations.
  */
-const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+const getAllReservations = function (guest_id, limit = 10) {
+  const queryString = `SELECT reservations.*, properties.*
+  FROM reservations
+  JOIN properties ON properties.id = reservations.property_id
+JOIN property_reviews ON properties.id = property_reviews.property_id
+WHERE reservations.end_date < now()::date AND reservations.guest_id = $1
+GROUP BY reservations.id, properties.id, property_reviews.id
+ORDER BY reservations.start_date
+LIMIT $2`;
+  const values = [guest_id, limit];
+  return pool.query(queryString, values)
+    .then(res => res.rows)
+    .catch(err => console.log('query error', err.stack))
+  // return getAllProperties(null, 2);
 }
 exports.getAllReservations = getAllReservations;
 
@@ -92,12 +104,12 @@ exports.getAllReservations = getAllReservations;
  */
 
 
-const getAllProperties = function(options, limit = 10) {
+const getAllProperties = function (options, limit = 10) {
   const queryString = `SELECT * FROM properties LIMIT $1;`;
   return pool.query(queryString, [limit])
-  .then(res => res.rows)
-  .catch ( err => console.log('query error', err.stack))
-  
+    .then(res => res.rows)
+    .catch(err => console.log('query error', err.stack))
+
   // const limitedProperties = {};
   // for (let i = 1; i <= limit; i++) {
   //   limitedProperties[i] = properties[i];
@@ -113,7 +125,7 @@ exports.getAllProperties = getAllProperties;
  * @param {{}} property An object containing all of the property details.
  * @return {Promise<{}>} A promise to the property.
  */
-const addProperty = function(property) {
+const addProperty = function (property) {
   const propertyId = Object.keys(properties).length + 1;
   property.id = propertyId;
   properties[propertyId] = property;
