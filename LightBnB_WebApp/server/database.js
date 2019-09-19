@@ -1,4 +1,4 @@
-const { db } = require('../public/javascript/index.js');
+const db = require('./db/index.js');
 /// Users
 /**
  * Get a single user from the database given their email.
